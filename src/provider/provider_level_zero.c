@@ -20,6 +20,8 @@
 #include "utils_load_library.h"
 #include "utils_log.h"
 
+#include <provider_tracking.h>
+
 static void *ze_lib_handle = NULL;
 
 void fini_ze_global_state(void) {
@@ -51,7 +53,11 @@ typedef struct umf_level_zero_memory_provider_params_t {
     umf_usm_memory_type_t memory_type; ///< Allocation memory type
 
     ze_device_handle_t *
-        resident_device_handles; ///< Array of devices for which the memory should be made resident
+        device_handles; ///< Array of all devices, null if resident devices unsupported
+    uint32_t
+        device_count; ///< Number of items on device_handles, 0 if resident devices unsupported
+    uint32_t *
+        resident_device_indices; ///< Array of indices of devices for which the memory should be made resident
     uint32_t
         resident_device_count; ///< Number of devices for which the memory should be made resident
 
@@ -67,7 +73,9 @@ typedef struct ze_memory_provider_t {
     ze_device_handle_t device;
     ze_memory_type_t memory_type;
 
-    ze_device_handle_t *resident_device_handles;
+    ze_device_handle_t *device_handles;
+    uint32_t device_count;             // just for checks
+    uint32_t *resident_device_indices; // not sorted
     uint32_t resident_device_count;
 
     ze_device_properties_t device_properties;
@@ -250,7 +258,9 @@ umf_result_t umfLevelZeroMemoryProviderParamsCreate(
     params->level_zero_context_handle = NULL;
     params->level_zero_device_handle = NULL;
     params->memory_type = UMF_MEMORY_TYPE_UNKNOWN;
-    params->resident_device_handles = NULL;
+    params->device_handles = NULL;
+    params->device_count = 0;
+    params->resident_device_indices = NULL;
     params->resident_device_count = 0;
     params->freePolicy = UMF_LEVEL_ZERO_MEMORY_PROVIDER_FREE_POLICY_DEFAULT;
     params->device_ordinal = 0;
@@ -265,7 +275,6 @@ umf_result_t umfLevelZeroMemoryProviderParamsCreate(
 umf_result_t umfLevelZeroMemoryProviderParamsDestroy(
     umf_level_zero_memory_provider_params_handle_t hParams) {
     umf_ba_global_free(hParams);
-
     return UMF_RESULT_SUCCESS;
 }
 
@@ -345,19 +354,24 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetName(
 
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,
-    ze_device_handle_t *hDevices, uint32_t deviceCount) {
+    ze_device_handle_t *hDevices, uint32_t deviceCount,
+    uint32_t *residentDevicesIndices, uint32_t residentDevicesCount) {
+
     if (!hParams) {
         LOG_ERR("Level Zero memory provider params handle is NULL");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
 
-    if (deviceCount && !hDevices) {
-        LOG_ERR("Resident devices array is NULL, but deviceCount is not zero");
+    if (residentDevicesCount && !residentDevicesIndices) {
+        LOG_ERR("Resident devices indices array is NULL, but "
+                "residentDevicesCount is not zero");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
 
-    hParams->resident_device_handles = hDevices;
-    hParams->resident_device_count = deviceCount;
+    hParams->device_handles = hDevices;
+    hParams->device_count = deviceCount;
+    hParams->resident_device_indices = residentDevicesIndices;
+    hParams->resident_device_count = residentDevicesCount;
 
     return UMF_RESULT_SUCCESS;
 }
@@ -460,12 +474,20 @@ static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
     }
 
     for (uint32_t i = 0; i < ze_provider->resident_device_count; i++) {
+        const uint32_t resident_device_idx =
+            ze_provider->resident_device_indices[i];
+
         ze_result = g_ze_ops.zeContextMakeMemoryResident(
-            ze_provider->context, ze_provider->resident_device_handles[i],
-            *resultPtr, size);
+            ze_provider->context,
+            ze_provider->device_handles[resident_device_idx], *resultPtr, size);
         if (ze_result != ZE_RESULT_SUCCESS) {
+            LOG_DEBUG("making resident allocation %p of size:%lu on device %u "
+                      "failed with %d",
+                      *resultPtr, size, resident_device_idx, ze_result);
             return ze2umf_result(ze_result);
         }
+        LOG_DEBUG("allocation %p of size:%lu made resident on device %u",
+                  *resultPtr, size, resident_device_idx);
     }
 
     if (update_stats) {
@@ -544,9 +566,13 @@ static umf_result_t query_min_page_size(ze_memory_provider_t *ze_provider,
 }
 
 static umf_result_t ze_memory_provider_finalize(void *provider) {
-    ze_memory_provider_t *ze_provider = (ze_memory_provider_t *)provider;
-    umf_ba_global_free(ze_provider->resident_device_handles);
-
+    ze_memory_provider_t *ze_provider = provider;
+    if (ze_provider->device_handles != NULL) {
+        umf_ba_global_free(ze_provider->device_handles);
+    }
+    if (ze_provider->resident_device_indices != NULL) {
+        umf_ba_global_free(ze_provider->resident_device_indices);
+    }
     umf_ba_global_free(provider);
     return UMF_RESULT_SUCCESS;
 }
@@ -571,9 +597,23 @@ static umf_result_t ze_memory_provider_initialize(const void *params,
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
 
-    if ((bool)ze_params->resident_device_count &&
-        (ze_params->resident_device_handles == NULL)) {
-        LOG_ERR("Resident devices handles array is NULL, but device_count is "
+    if (ze_params->device_count < ze_params->resident_device_count) {
+        LOG_ERR(
+            "Device count should be not less than than resident devices count");
+        return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (ze_params->device_count > 0 && ze_params->device_handles == NULL) {
+        LOG_ERR("Device handler should be non-NULL if device_count:%d is "
+                "greater than 0",
+                ze_params->device_count);
+        return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (ze_params->resident_device_count > 0 &&
+        (ze_params->resident_device_indices == NULL)) {
+        LOG_ERR("Resident devices indices array is NULL, but "
+                "resident_device_count is "
                 "not zero");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
@@ -617,24 +657,41 @@ static umf_result_t ze_memory_provider_initialize(const void *params,
         }
     }
 
-    if (ze_params->resident_device_count) {
-        ze_provider->resident_device_handles = umf_ba_global_alloc(
-            sizeof(ze_device_handle_t) * ze_params->resident_device_count);
-        if (!ze_provider->resident_device_handles) {
-            LOG_ERR("Cannot allocate memory for resident devices");
+    ze_provider->device_handles = ze_params->device_handles;
+
+    if (ze_params->device_count > 0) {
+        // we allocate space for maximum possible set of resident indices
+        ze_provider->resident_device_indices =
+            umf_ba_global_alloc(sizeof(uint32_t) * ze_params->device_count);
+        if (ze_provider->resident_device_indices == NULL) {
+            LOG_ERR("Cannot allocate memory for resident device indices");
+            umf_ba_global_free(ze_provider);
+            return UMF_RESULT_ERROR_OUT_OF_HOST_MEMORY;
+        }
+
+        ze_provider->device_handles = umf_ba_global_alloc(
+            sizeof(ze_device_handle_t) * ze_params->device_count);
+        if (ze_provider->device_handles == NULL) {
+            LOG_ERR("Cannot allocate memory for device handles");
+            umf_ba_global_free(ze_provider->resident_device_indices);
             umf_ba_global_free(ze_provider);
             return UMF_RESULT_ERROR_OUT_OF_HOST_MEMORY;
         }
 
         ze_provider->resident_device_count = ze_params->resident_device_count;
+        memcpy(ze_provider->resident_device_indices,
+               ze_params->resident_device_indices,
+               sizeof(uint32_t) * ze_params->resident_device_count);
+        ze_provider->device_count = ze_params->device_count;
+        memcpy(ze_provider->device_handles, ze_params->device_handles,
+               sizeof(ze_device_handle_t) * ze_params->device_count);
 
-        for (uint32_t i = 0; i < ze_provider->resident_device_count; i++) {
-            ze_provider->resident_device_handles[i] =
-                ze_params->resident_device_handles[i];
-        }
+        LOG_INFO("L0 memory provider:%p have %d device(s) including %d "
+                 "resident device(s)",
+                 (void *)ze_provider, ze_params->device_count,
+                 ze_params->resident_device_count);
     } else {
-        ze_provider->resident_device_handles = NULL;
-        ze_provider->resident_device_count = 0;
+        LOG_INFO("L0 memory provider does not use resident devices");
     }
 
     umf_result_t result =
@@ -930,6 +987,155 @@ static umf_result_t ze_memory_provider_get_allocation_properties_size(
     return UMF_RESULT_ERROR_INVALID_ARGUMENT;
 }
 
+struct ze_memory_provider_resident_device_change_data {
+    bool isAdding;
+    uint32_t peer_device_index;
+    ze_memory_provider_t *source_memory_provider;
+    uint32_t success_changes;
+    uint32_t failed_changes;
+};
+
+static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
+                                                            void *value,
+                                                            void *privdata) {
+    struct ze_memory_provider_resident_device_change_data *change_data =
+        privdata;
+    tracker_alloc_info_t *info = value;
+    if (info->props.provider->provider_priv !=
+        (void *)change_data->source_memory_provider) {
+        LOG_DEBUG("ze_memory_provider_resident_device_change found not our "
+                  "pointer %p",
+                  (void *)key);
+        return 0;
+    }
+
+    ze_device_handle_t peer_device =
+        change_data->source_memory_provider
+            ->device_handles[change_data->peer_device_index];
+
+    // TODO: add assertions to UMF and change it to be an assertion
+    if (info->props.base != (void *)key) {
+        LOG_ERR("key:%p is different than base:%p", (void *)key,
+                info->props.base);
+        abort();
+    }
+
+    ze_result_t result;
+    if (change_data->isAdding) {
+        result = g_ze_ops.zeContextMakeMemoryResident(
+            change_data->source_memory_provider->context, peer_device,
+            info->props.base, info->props.base_size);
+    } else {
+        result = ZE_RESULT_SUCCESS;
+        // TODO: currently not implemented call evict here
+    }
+
+    if (result != ZE_RESULT_SUCCESS) {
+        LOG_ERR("ze_memory_provider_resident_device_change found our pointer "
+                "%p but failed to make it resident on device:%p due to err:%d",
+                (void *)key, (void *)peer_device, result);
+        ++change_data->failed_changes;
+        return 1;
+    }
+
+    LOG_DEBUG("ze_memory_provider_resident_device_change found our pointer %p "
+              "and made it resident on device:%p",
+              (void *)key, (void *)peer_device);
+    ++change_data->success_changes;
+    return 0;
+}
+
+static umf_result_t
+ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
+                                          bool isAdding) {
+    ze_memory_provider_t *ze_provider = provider;
+
+    LOG_INFO("%s resident device with id:%d, src_provider:%p, existing peers "
+             "count:%d",
+             (isAdding ? "adding" : "removing"), device_index, provider,
+             ze_provider->resident_device_count);
+
+    uint32_t existing_peer_index = 0;
+    while (existing_peer_index < ze_provider->resident_device_count &&
+           ze_provider->resident_device_indices[existing_peer_index] !=
+               device_index) {
+        ++existing_peer_index;
+    }
+
+    if (ze_provider->resident_device_count == 0 ||
+        existing_peer_index == ze_provider->resident_device_count) {
+        // not found
+        if (!isAdding) { // impossible for UR, should be an assertion
+            LOG_ERR("trying to remove resident device of idx:%d but the device "
+                    "is not a peer of provider:%p currently",
+                    device_index, provider);
+            return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+        }
+        // adding case
+        if (ze_provider->device_count <=
+            ze_provider
+                ->resident_device_count) { // impossible for UR, should be an assertion
+            LOG_ERR("trying to add resident device of idx:%d while all devices "
+                    "were already added as resident ones",
+                    device_index);
+            return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+        }
+
+        if (ze_provider->device_count <=
+            device_index) { // impossible for UR, should be an assertion
+            LOG_ERR("using too large peer device idx:%d, devices count is %d",
+                    device_index, ze_provider->device_count);
+            return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+        }
+
+        ze_provider->resident_device_indices[existing_peer_index] =
+            device_index;
+        ++ze_provider->resident_device_count;
+
+    } else {
+        // found
+        if (isAdding) { // impossible for UR, should be an assertion
+            LOG_ERR("trying to add resident device of idx:%d but the device is "
+                    "already a peer of provider:%p",
+                    device_index, provider);
+            return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+        }
+        // removing case
+        --ze_provider->resident_device_count;
+        ze_provider->resident_device_indices[existing_peer_index] =
+            ze_provider
+                ->resident_device_indices[ze_provider->resident_device_count];
+    }
+
+    struct ze_memory_provider_resident_device_change_data privData = {
+        .isAdding = isAdding,
+        .peer_device_index = device_index,
+        .source_memory_provider = ze_provider,
+        .success_changes = 0,
+        .failed_changes = 0,
+    };
+
+    umf_result_t result = umfMemoryTrackerIterateAll(
+        &ze_memory_provider_resident_device_change_helper, &privData);
+    if (result != UMF_RESULT_SUCCESS) {
+        LOG_ERR("umfMemoryTrackerIterateAll failed during resident device "
+                "change with result:%d numFailed:%d, numSuccess:%d",
+                result, privData.success_changes, privData.failed_changes);
+        return result;
+    }
+
+    if (privData.failed_changes > 0) {
+        LOG_ERR("umfMemoryTrackerIterateAll did not manage to do some change "
+                "numFailed:%d, numSuccess:%d",
+                privData.success_changes, privData.failed_changes);
+        return UMF_RESULT_ERROR_INVALID_ARGUMENT; // probably some other result is better, best just change into assertion
+    }
+
+    LOG_INFO("ze_memory_provider_resident_device_change done, numSuccess:%d",
+             privData.success_changes);
+    return UMF_RESULT_SUCCESS;
+}
+
 static umf_memory_provider_ops_t UMF_LEVEL_ZERO_MEMORY_PROVIDER_OPS = {
     .version = UMF_PROVIDER_OPS_VERSION_CURRENT,
     .initialize = ze_memory_provider_initialize,
@@ -954,6 +1160,7 @@ static umf_memory_provider_ops_t UMF_LEVEL_ZERO_MEMORY_PROVIDER_OPS = {
         ze_memory_provider_get_allocation_properties,
     .ext_get_allocation_properties_size =
         ze_memory_provider_get_allocation_properties_size,
+    .ext_resident_device_change = ze_memory_provider_resident_device_change,
 };
 
 const umf_memory_provider_ops_t *umfLevelZeroMemoryProviderOps(void) {

@@ -265,6 +265,17 @@ umf_result_t
 umfMemoryProviderAllocationMerge(umf_memory_provider_handle_t hProvider,
                                  void *lowPtr, void *highPtr, size_t totalSize);
 
+/// @brief Adds or removes devices on which allocations should be made
+///        resident.
+/// @param hProvider handle to the memory provider
+/// @param deviceIndex identifier of device
+/// @param isAdding boolean indicating if peer is to be removed or added
+/// @return UMF_RESULT_SUCCESS on success or appropriate error code on
+///         failure.
+umf_result_t
+umfMemoryProviderResidentDeviceChange(umf_memory_provider_handle_t hProvider,
+                                      uint32_t deviceIndex, bool isAdding);
+
 #ifdef __cplusplus
 }
 #endif

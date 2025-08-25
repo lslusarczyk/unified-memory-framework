@@ -606,3 +606,13 @@ umf_result_t umfMemoryProviderGetAllocationPropertiesSize(
     checkErrorAndSetLastProvider(res, hProvider);
     return res;
 }
+
+umf_result_t
+umfMemoryProviderResidentDeviceChange(umf_memory_provider_handle_t hProvider,
+                                      uint32_t deviceIndex, bool isAdding) {
+    UMF_CHECK((hProvider != NULL), UMF_RESULT_ERROR_INVALID_ARGUMENT);
+    umf_result_t res = hProvider->ops.ext_resident_device_change(
+        hProvider->provider_priv, deviceIndex, isAdding);
+    checkErrorAndSetLastProvider(res, hProvider);
+    return res;
+}

@@ -66,7 +66,8 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetMemoryType(
 /// @return UMF_RESULT_SUCCESS on success or appropriate error code on failure.
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,
-    ze_device_handle_t *hDevices, uint32_t deviceCount);
+    ze_device_handle_t *hDevices, uint32_t deviceCount,
+    uint32_t *residentDevicesIndices, uint32_t residentDevicesCount);
 
 typedef enum umf_level_zero_memory_provider_free_policy_t {
     UMF_LEVEL_ZERO_MEMORY_PROVIDER_FREE_POLICY_DEFAULT =

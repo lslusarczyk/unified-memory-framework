@@ -60,6 +60,7 @@ EXPORTS
     umfMemoryProviderPurgeForce
     umfMemoryProviderPurgeLazy
     umfMemoryProviderPutIPCHandle
+    umfMemoryProviderResidentDeviceChange
     umfMempolicyCreate
     umfMempolicyDestroy
     umfMempolicySetCustomSplitPartitions
