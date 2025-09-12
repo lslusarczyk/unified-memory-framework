@@ -154,6 +154,15 @@ static umf_result_t umfDefaultGetAllocationPropertiesSize(
     return UMF_RESULT_ERROR_NOT_SUPPORTED;
 }
 
+static umf_result_t umfDefaultResidentDeviceChange(void *provider,
+                                                   uint32_t device_index,
+                                                   bool is_adding) {
+    (void)provider;
+    (void)device_index;
+    (void)is_adding;
+    return UMF_RESULT_ERROR_NOT_SUPPORTED;
+}
+
 void assignOpsExtDefaults(umf_memory_provider_ops_t *ops) {
     if (!ops->ext_purge_lazy) {
         ops->ext_purge_lazy = umfDefaultPurgeLazy;
@@ -182,6 +191,10 @@ void assignOpsExtDefaults(umf_memory_provider_ops_t *ops) {
     if (!ops->ext_get_allocation_properties_size) {
         ops->ext_get_allocation_properties_size =
             umfDefaultGetAllocationPropertiesSize;
+    }
+
+    if (!ops->ext_resident_device_change) {
+        ops->ext_resident_device_change = umfDefaultResidentDeviceChange;
     }
 }
 

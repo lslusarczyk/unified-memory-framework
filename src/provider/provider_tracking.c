@@ -1336,15 +1336,6 @@ static umf_result_t trackingGetAllocationPropertiesSize(
         p->hUpstream, memory_property_id, size);
 }
 
-static umf_result_t trackingResidentDeviceChange(void *provider,
-                                                 uint32_t device_index,
-                                                 bool is_adding) {
-    (void)provider;
-    (void)device_index;
-    (void)is_adding;
-    return UMF_RESULT_SUCCESS;
-}
-
 umf_memory_provider_ops_t UMF_TRACKING_MEMORY_PROVIDER_OPS = {
     .version = UMF_PROVIDER_OPS_VERSION_CURRENT,
     .initialize = trackingInitialize,
@@ -1367,7 +1358,7 @@ umf_memory_provider_ops_t UMF_TRACKING_MEMORY_PROVIDER_OPS = {
     .ext_ctl = NULL,
     .ext_get_allocation_properties = trackingGetAllocationProperties,
     .ext_get_allocation_properties_size = trackingGetAllocationPropertiesSize,
-    .ext_resident_device_change = trackingResidentDeviceChange,
+    .ext_resident_device_change = NULL,
 };
 
 static void free_ipc_cache_value(void *unused, void *ipc_cache_value) {

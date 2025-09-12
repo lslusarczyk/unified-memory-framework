@@ -361,10 +361,35 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
 
-    if (residentDevicesCount && !residentDevicesIndices) {
+    if (residentDevicesCount > 0 && residentDevicesIndices == NULL) {
         LOG_ERR("Resident devices indices array is NULL, but "
                 "residentDevicesCount is not zero");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+    }
+
+    if (deviceCount > 0 && hDevices == NULL) {
+        LOG_ERR("All devices array is NULL, but deviceCount is not zero");
+        return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+    }
+
+    for (uint32_t first_idx = 0; first_idx < residentDevicesCount;
+         first_idx++) {
+        if (residentDevicesIndices[first_idx] >= deviceCount) {
+            LOG_ERR("Resident device index:%u is out of range, should be less "
+                    "than deviceCount:%u",
+                    residentDevicesIndices[first_idx], deviceCount);
+            return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+        }
+        for (uint32_t second_idx = 0; second_idx < first_idx; second_idx++) {
+            if (residentDevicesIndices[first_idx] ==
+                residentDevicesIndices[second_idx]) {
+                LOG_ERR("resident device indices are not unique, idx:%u and "
+                        "idx:%u both point to indice:%u",
+                        first_idx, second_idx,
+                        residentDevicesIndices[first_idx]);
+                return UMF_RESULT_ERROR_INVALID_ARGUMENT;
+            }
+        }
     }
 
     hParams->device_handles = hDevices;
@@ -989,7 +1014,7 @@ static umf_result_t ze_memory_provider_get_allocation_properties_size(
 }
 
 struct ze_memory_provider_resident_device_change_data {
-    bool isAdding;
+    bool is_adding;
     uint32_t peer_device_index;
     ze_memory_provider_t *source_memory_provider;
     uint32_t success_changes;
@@ -1022,7 +1047,7 @@ static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
     }
 
     ze_result_t result;
-    if (change_data->isAdding) {
+    if (change_data->is_adding) {
         result = g_ze_ops.zeContextMakeMemoryResident(
             change_data->source_memory_provider->context, peer_device,
             info->props.base, info->props.base_size);
@@ -1048,12 +1073,12 @@ static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
 
 static umf_result_t
 ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
-                                          bool isAdding) {
+                                          bool is_adding) {
     ze_memory_provider_t *ze_provider = provider;
 
     LOG_INFO("%s resident device with id:%d, src_provider:%p, existing peers "
              "count:%d",
-             (isAdding ? "adding" : "removing"), device_index, provider,
+             (is_adding ? "adding" : "removing"), device_index, provider,
              ze_provider->resident_device_count);
 
     uint32_t existing_peer_index = 0;
@@ -1066,7 +1091,8 @@ ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
     if (ze_provider->resident_device_count == 0 ||
         existing_peer_index == ze_provider->resident_device_count) {
         // not found
-        if (!isAdding) { // impossible for UR, should be an assertion
+        if (!is_adding) {
+            // impossible for UR, should be an assertion
             LOG_ERR("trying to remove resident device of idx:%d but the device "
                     "is not a peer of provider:%p currently",
                     device_index, provider);
@@ -1082,8 +1108,8 @@ ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
             return UMF_RESULT_ERROR_INVALID_ARGUMENT;
         }
 
-        if (ze_provider->device_count <=
-            device_index) { // impossible for UR, should be an assertion
+        if (ze_provider->device_count <= device_index) {
+            // impossible for UR, should be an assertion
             LOG_ERR("using too large peer device idx:%d, devices count is %d",
                     device_index, ze_provider->device_count);
             return UMF_RESULT_ERROR_INVALID_ARGUMENT;
@@ -1095,7 +1121,8 @@ ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
 
     } else {
         // found
-        if (isAdding) { // impossible for UR, should be an assertion
+        if (is_adding) {
+            // impossible for UR, should be an assertion
             LOG_ERR("trying to add resident device of idx:%d but the device is "
                     "already a peer of provider:%p",
                     device_index, provider);
@@ -1109,7 +1136,7 @@ ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
     }
 
     struct ze_memory_provider_resident_device_change_data privData = {
-        .isAdding = isAdding,
+        .is_adding = is_adding,
         .peer_device_index = device_index,
         .source_memory_provider = ze_provider,
         .success_changes = 0,
@@ -1129,7 +1156,8 @@ ze_memory_provider_resident_device_change(void *provider, uint32_t device_index,
         LOG_ERR("umfMemoryTrackerIterateAll did not manage to do some change "
                 "numFailed:%d, numSuccess:%d",
                 privData.success_changes, privData.failed_changes);
-        return UMF_RESULT_ERROR_INVALID_ARGUMENT; // probably some other result is better, best just change into assertion
+        // TODO: change into permanent assertion when avail
+        return UMF_RESULT_ERROR_MEMORY_PROVIDER_SPECIFIC;
     }
 
     LOG_INFO("ze_memory_provider_resident_device_change done, numSuccess:%d",

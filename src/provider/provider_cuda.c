@@ -802,15 +802,6 @@ static umf_result_t cu_memory_provider_get_allocation_properties_size(
     return UMF_RESULT_ERROR_INVALID_ARGUMENT;
 }
 
-static umf_result_t
-cu_memory_provider_resident_device_change(void *provider, uint32_t device_index,
-                                          bool is_adding) {
-    (void)provider;
-    (void)device_index;
-    (void)is_adding;
-    return UMF_RESULT_SUCCESS;
-}
-
 static umf_memory_provider_ops_t UMF_CUDA_MEMORY_PROVIDER_OPS = {
     .version = UMF_PROVIDER_OPS_VERSION_CURRENT,
     .initialize = cu_memory_provider_initialize,
@@ -838,7 +829,7 @@ static umf_memory_provider_ops_t UMF_CUDA_MEMORY_PROVIDER_OPS = {
         cu_memory_provider_get_allocation_properties,
     .ext_get_allocation_properties_size =
         cu_memory_provider_get_allocation_properties_size,
-    .ext_resident_device_change = cu_memory_provider_resident_device_change,
+    .ext_resident_device_change = NULL,
 };
 
 const umf_memory_provider_ops_t *umfCUDAMemoryProviderOps(void) {
