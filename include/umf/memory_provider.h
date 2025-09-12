@@ -269,7 +269,7 @@ umfMemoryProviderAllocationMerge(umf_memory_provider_handle_t hProvider,
 ///        resident.
 /// @param hProvider handle to the memory provider
 /// @param deviceIndex identifier of device
-/// @param isAdding boolean indicating if peer is to be removed or added
+/// @param isAdding Boolean indicating if peer is to be removed or added
 /// @return UMF_RESULT_SUCCESS on success or appropriate error code on
 ///         failure.
 umf_result_t

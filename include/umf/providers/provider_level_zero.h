@@ -63,8 +63,8 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetMemoryType(
 /// @param  hParams handle to the parameters of the Level Zero Memory Provider.
 /// @param  hDevices array of all devices for which the memory can be made resident.
 /// @param  deviceCount number of devices for which the memory can be made resident.
-/// @param  residentDevicesIndices array of indices in 'hDevices' array to devices for which the memory should be made resident.
-/// @param  residentDevicesCount number of indices in 'residentDevicesIndices' array.
+/// @param  residentDevicesIndices array of indices in all devices array to devices for which the memory should be made resident.
+/// @param  residentDevicesCount number of items in indices array.
 /// @return UMF_RESULT_SUCCESS on success or appropriate error code on failure.
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,

@@ -197,7 +197,7 @@ typedef struct umf_memory_pool_ops_t {
     ///        resident.
     /// @param pool pointer to the memory pool
     /// @param peerIdx identifier of device
-    /// @param isAdding boolean indicating if peer is to be removed or added
+    /// @param isAdding Boolean indicating if peer is to be removed or added
     /// @return UMF_RESULT_SUCCESS on success or appropriate error code on
     ///         failure.
     ///
