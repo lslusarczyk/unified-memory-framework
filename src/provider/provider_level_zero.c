@@ -678,9 +678,11 @@ static umf_result_t ze_memory_provider_initialize(const void *params,
         }
 
         ze_provider->resident_device_count = ze_params->resident_device_count;
-        memcpy(ze_provider->resident_device_indices,
-               ze_params->resident_device_indices,
-               sizeof(uint32_t) * ze_params->resident_device_count);
+        if (ze_params->resident_device_count > 0) {
+            memcpy(ze_provider->resident_device_indices,
+                   ze_params->resident_device_indices,
+                   sizeof(uint32_t) * ze_params->resident_device_count);
+        }
         ze_provider->device_count = ze_params->device_count;
         memcpy(ze_provider->device_handles, ze_params->device_handles,
                sizeof(ze_device_handle_t) * ze_params->device_count);
@@ -1216,10 +1218,13 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetMemoryType(
 
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,
-    ze_device_handle_t *hDevices, uint32_t deviceCount) {
+    ze_device_handle_t *hDevices, uint32_t deviceCount,
+    uint32_t *residentDevicesIndices, uint32_t residentDevicesCount) {
     (void)hParams;
     (void)hDevices;
     (void)deviceCount;
+    (void)residentDevicesIndices;
+    (void)residentDevicesCount;
     LOG_ERR("L0 memory provider is disabled! (UMF_BUILD_LEVEL_ZERO_PROVIDER is "
             "OFF)");
     return UMF_RESULT_ERROR_NOT_SUPPORTED;

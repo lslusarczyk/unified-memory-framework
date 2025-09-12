@@ -212,8 +212,8 @@ TEST_F(test, FailMismatchedResidentHandlesCount) {
     umf_result_t result = umfLevelZeroMemoryProviderParamsCreate(&hParams);
     ASSERT_EQ(result, UMF_RESULT_SUCCESS);
 
-    result = umfLevelZeroMemoryProviderParamsSetResidentDevices(hParams,
-                                                                nullptr, 99);
+    result = umfLevelZeroMemoryProviderParamsSetResidentDevices(
+        hParams, nullptr, 99, nullptr, 0);
     ASSERT_EQ(result, UMF_RESULT_ERROR_INVALID_ARGUMENT);
 
     umfLevelZeroMemoryProviderParamsDestroy(hParams);

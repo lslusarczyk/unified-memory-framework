@@ -27,8 +27,8 @@ TEST_F(test, level_zero_provider_not_implemented) {
     ASSERT_EQ(result, UMF_RESULT_ERROR_NOT_SUPPORTED);
 
     ze_device_handle_t hDevices[1];
-    result = umfLevelZeroMemoryProviderParamsSetResidentDevices(hParams,
-                                                                hDevices, 1);
+    result = umfLevelZeroMemoryProviderParamsSetResidentDevices(
+        hParams, hDevices, 1, nullptr, 0);
     ASSERT_EQ(result, UMF_RESULT_ERROR_NOT_SUPPORTED);
 
     result = umfLevelZeroMemoryProviderParamsSetFreePolicy(
