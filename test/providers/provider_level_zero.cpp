@@ -204,19 +204,47 @@ TEST_F(LevelZeroProviderInit, FailNonNullDevice) {
     umfLevelZeroMemoryProviderParamsDestroy(hParams);
 }
 
-TEST_F(test, FailMismatchedResidentHandlesCount) {
+static void invalidResidentDevicesHandlesTestHelper(
+    ze_device_handle_t *hDevices, uint32_t deviceCount,
+    uint32_t *residentDevicesIndices, uint32_t residentDevicesCount) {
     const umf_memory_provider_ops_t *ops = umfLevelZeroMemoryProviderOps();
     ASSERT_NE(ops, nullptr);
 
     umf_level_zero_memory_provider_params_handle_t hParams = nullptr;
-    umf_result_t result = umfLevelZeroMemoryProviderParamsCreate(&hParams);
-    ASSERT_EQ(result, UMF_RESULT_SUCCESS);
+    const umf_result_t create_result =
+        umfLevelZeroMemoryProviderParamsCreate(&hParams);
+    ASSERT_EQ(create_result, UMF_RESULT_SUCCESS);
 
-    result = umfLevelZeroMemoryProviderParamsSetResidentDevices(
-        hParams, nullptr, 99, nullptr, 0);
-    ASSERT_EQ(result, UMF_RESULT_ERROR_INVALID_ARGUMENT);
+    const umf_result_t set_resident_result =
+        umfLevelZeroMemoryProviderParamsSetResidentDevices(
+            hParams, hDevices, deviceCount, residentDevicesIndices,
+            residentDevicesCount);
+    ASSERT_EQ(set_resident_result, UMF_RESULT_ERROR_INVALID_ARGUMENT);
 
     umfLevelZeroMemoryProviderParamsDestroy(hParams);
+}
+
+TEST_F(test, FailMismatchedResidentHandlesCount) {
+    invalidResidentDevicesHandlesTestHelper(nullptr, 99, nullptr, 0);
+}
+
+TEST_F(test, FailMismatchedResidentDeviceIndicesCount) {
+    std::vector<ze_device_handle_t> allDevices(23);
+    invalidResidentDevicesHandlesTestHelper(allDevices.data(), 23, nullptr, 1);
+}
+
+TEST_F(test, FailRedundantResidentDeviceIndices) {
+    std::vector<ze_device_handle_t> allDevices(23);
+    std::vector<uint32_t> residentDevicesIndices{3, 5, 1, 5}; // double 5
+    invalidResidentDevicesHandlesTestHelper(allDevices.data(), 23,
+                                            residentDevicesIndices.data(), 4);
+}
+
+TEST_F(test, FailTooLargeResidentDeviceIndex) {
+    std::vector<ze_device_handle_t> allDevices(23);
+    std::vector<uint32_t> residentDevicesIndices{123};
+    invalidResidentDevicesHandlesTestHelper(allDevices.data(), 23,
+                                            residentDevicesIndices.data(), 1);
 }
 
 class LevelZeroMemoryAccessor : public MemoryAccessor {
