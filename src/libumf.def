@@ -41,7 +41,6 @@ EXPORTS
     umfLevelZeroMemoryProviderParamsSetContext
     umfLevelZeroMemoryProviderParamsSetDevice
     umfLevelZeroMemoryProviderParamsSetMemoryType
-    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfMemoryProviderAlloc
     umfMemoryProviderAllocationMerge
     umfMemoryProviderAllocationSplit
@@ -144,6 +143,7 @@ EXPORTS
     umfJemallocPoolParamsCreate
     umfJemallocPoolParamsDestroy
     umfJemallocPoolParamsSetNumArenas
+    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfPoolGetName
 ; Added in UMF_1.1
     umfCUDAMemoryProviderParamsSetName
