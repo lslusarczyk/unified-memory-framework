@@ -54,7 +54,6 @@ UMF_1.0 {
         umfMemoryProviderPurgeForce;
         umfMemoryProviderPurgeLazy;
         umfMemoryProviderPutIPCHandle;
-        umfMemoryProviderResidentDeviceChange;
         umfMempolicyCreate;
         umfMempolicyDestroy;
         umfMempolicySetCustomSplitPartitions;
@@ -138,6 +137,7 @@ UMF_1.0 {
         umfJemallocPoolParamsCreate;
         umfJemallocPoolParamsDestroy;
         umfJemallocPoolParamsSetNumArenas;
+        umfMemoryProviderResidentDeviceChange;
         umfPoolGetName;
     local:
         *;

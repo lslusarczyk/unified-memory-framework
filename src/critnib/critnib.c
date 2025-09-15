@@ -1138,7 +1138,7 @@ void critnib_iter(critnib *c, uintptr_t min, uintptr_t max,
     }
     utils_mutex_unlock(&c->mutex);
     if (!wasIterating) {
-        LOG_DEBUG("there was no root, iterating critnib:%p was skipped",
+        LOG_DEBUG("there was no root, iterating critnib: %p was skipped",
                   (void *)c);
     }
 }
