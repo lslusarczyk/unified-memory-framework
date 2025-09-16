@@ -326,12 +326,11 @@ typedef struct umf_memory_provider_ops_t {
     /// @brief Adds or removes devices on which allocations should be made
     ///        resident.
     /// @param provider handle to the memory provider
-    /// @param device_index identifier of device
+    /// @param device device handle
     /// @param is_adding Boolean indicating if peer is to be removed or added
     /// @return UMF_RESULT_SUCCESS on success or appropriate error code on
     ///         failure.
-    umf_result_t (*ext_resident_device_change)(void *provider,
-                                               uint32_t device_index,
+    umf_result_t (*ext_resident_device_change)(void *provider, void *device,
                                                bool is_adding);
 
 } umf_memory_provider_ops_t;

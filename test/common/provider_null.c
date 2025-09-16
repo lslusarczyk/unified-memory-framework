@@ -162,11 +162,10 @@ static umf_result_t nullGetAllocationPropertiesSize(
     return UMF_RESULT_SUCCESS;
 }
 
-static umf_result_t nullResidentDeviceChange(void *provider,
-                                             uint32_t device_index,
+static umf_result_t nullResidentDeviceChange(void *provider, void *device,
                                              bool is_adding) {
     (void)provider;
-    (void)device_index;
+    (void)device;
     (void)is_adding;
     return UMF_RESULT_SUCCESS;
 }

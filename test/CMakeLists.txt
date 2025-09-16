@@ -35,8 +35,9 @@ endif()
 enable_testing()
 
 set(UMF_TEST_DIR ${CMAKE_CURRENT_SOURCE_DIR})
-set(UMF_UTILS_DIR ${UMF_CMAKE_SOURCE_DIR}/src/utils)
-set(UMF_BA_DIR ${UMF_CMAKE_SOURCE_DIR}/src/base_alloc)
+set(UMF_SRC_DIR ${UMF_CMAKE_SOURCE_DIR}/src)
+set(UMF_UTILS_DIR ${UMF_SRC_DIR}/utils)
+set(UMF_BA_DIR ${UMF_SRC_DIR}/base_alloc)
 
 function(build_umf_test)
     # Parameters:
@@ -430,6 +431,19 @@ else()
         LIBS ${UMF_UTILS_FOR_TEST} ${UMF_BA_FOR_TEST})
 endif()
 
+if (UMF_LEVEL_ZERO_ENABLED)
+    add_umf_test(
+        NAME provider_level_zero_residency
+        SRCS providers/provider_level_zero_residency.cpp
+            ${UMF_UTILS_DIR}/utils_level_zero.cpp
+        LIBS ${UMF_UTILS_FOR_TEST} umf_ze_loopback umf_test_mocks GTest::gmock)
+    add_umf_test(
+        NAME pool_residency
+        SRCS pools/pool_residency.cpp
+        ${UMF_UTILS_DIR}/utils_level_zero.cpp
+        LIBS ${UMF_UTILS_FOR_TEST} ${UMF_BA_FOR_TEST} umf_ze_loopback umf_test_mocks GTest::gmock)
+endif ()
+
 if(UMF_BUILD_GPU_TESTS AND UMF_LEVEL_ZERO_ENABLED)
     # we have two test binaries here that use the same sources, but differ in
     # the way they are linked to the Level Zero (statically or at runtime using
@@ -466,8 +480,8 @@ endif()
 if(NOT UMF_BUILD_LEVEL_ZERO_PROVIDER)
     add_umf_test(
         NAME provider_level_zero_not_impl
-        SRCS providers/provider_level_zero_not_impl.cpp
-        LIBS ${UMF_UTILS_FOR_TEST})
+	SRCS providers/provider_level_zero_not_impl.cpp
+	LIBS ${UMF_UTILS_FOR_TEST})
 endif()
 
 if(UMF_BUILD_GPU_TESTS AND UMF_BUILD_CUDA_PROVIDER)

@@ -46,24 +46,20 @@ void utils_rwlock_destroy_not_free(utils_rwlock_t *rwlock) {
     (void)rwlock;
 }
 
-int utils_read_lock(utils_rwlock_t *rwlock) {
-    AcquireSRWLockShared(&rwlock->lock);
-    return 0; // never fails
+void utils_read_lock(utils_rwlock_t *rwlock) {
+    AcquireSRWLockShared(&rwlock->lock); // never fails
 }
 
-int utils_write_lock(utils_rwlock_t *rwlock) {
-    AcquireSRWLockExclusive(&rwlock->lock);
-    return 0; // never fails
+void utils_write_lock(utils_rwlock_t *rwlock) {
+    AcquireSRWLockExclusive(&rwlock->lock); // never fails
 }
 
-int utils_read_unlock(utils_rwlock_t *rwlock) {
-    ReleaseSRWLockShared(&rwlock->lock);
-    return 0; // never fails
+void utils_read_unlock(utils_rwlock_t *rwlock) {
+    ReleaseSRWLockShared(&rwlock->lock); // never fails
 }
 
-int utils_write_unlock(utils_rwlock_t *rwlock) {
-    ReleaseSRWLockExclusive(&rwlock->lock);
-    return 0; // never fails
+void utils_write_unlock(utils_rwlock_t *rwlock) {
+    ReleaseSRWLockExclusive(&rwlock->lock); // never fails
 }
 
 static BOOL CALLBACK initOnceCb(PINIT_ONCE InitOnce, PVOID Parameter,

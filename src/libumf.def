@@ -19,6 +19,7 @@ EXPORTS
     umfCUDAMemoryProviderParamsSetContext
     umfCUDAMemoryProviderParamsSetDevice
     umfCUDAMemoryProviderParamsSetMemoryType
+    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfDevDaxMemoryProviderOps
     umfDevDaxMemoryProviderParamsCreate
     umfDevDaxMemoryProviderParamsDestroy
@@ -143,7 +144,6 @@ EXPORTS
     umfJemallocPoolParamsCreate
     umfJemallocPoolParamsDestroy
     umfJemallocPoolParamsSetNumArenas
-    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfPoolGetName
 ; Added in UMF_1.1
     umfCUDAMemoryProviderParamsSetName

@@ -61,15 +61,12 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetMemoryType(
 
 /// @brief  Set the resident devices in the parameters struct.
 /// @param  hParams handle to the parameters of the Level Zero Memory Provider.
-/// @param  hDevices array of all devices for which the memory can be made resident.
-/// @param  deviceCount number of devices for which the memory can be made resident.
-/// @param  residentDevicesIndices array of indices in all devices array to devices for which the memory should be made resident.
-/// @param  residentDevicesCount number of items in indices array.
+/// @param  hDevices array of devices for which the memory should be made resident.
+/// @param  deviceCount number of devices for which the memory should be made resident.
 /// @return UMF_RESULT_SUCCESS on success or appropriate error code on failure.
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,
-    ze_device_handle_t *hDevices, uint32_t deviceCount,
-    uint32_t *residentDevicesIndices, uint32_t residentDevicesCount);
+    ze_device_handle_t *hDevices, uint32_t deviceCount);
 
 typedef enum umf_level_zero_memory_provider_free_policy_t {
     UMF_LEVEL_ZERO_MEMORY_PROVIDER_FREE_POLICY_DEFAULT =
