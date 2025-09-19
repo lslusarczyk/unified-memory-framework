@@ -431,18 +431,21 @@ else()
         LIBS ${UMF_UTILS_FOR_TEST} ${UMF_BA_FOR_TEST})
 endif()
 
-if (UMF_LEVEL_ZERO_ENABLED)
+if(UMF_LEVEL_ZERO_ENABLED)
     add_umf_test(
         NAME provider_level_zero_residency
         SRCS providers/provider_level_zero_residency.cpp
-            ${UMF_UTILS_DIR}/utils_level_zero.cpp
+             ${UMF_UTILS_DIR}/utils_level_zero.cpp
         LIBS ${UMF_UTILS_FOR_TEST} umf_ze_loopback umf_test_mocks GTest::gmock)
     add_umf_test(
         NAME pool_residency
-        SRCS pools/pool_residency.cpp
-        ${UMF_UTILS_DIR}/utils_level_zero.cpp
-        LIBS ${UMF_UTILS_FOR_TEST} ${UMF_BA_FOR_TEST} umf_ze_loopback umf_test_mocks GTest::gmock)
-endif ()
+        SRCS pools/pool_residency.cpp ${UMF_UTILS_DIR}/utils_level_zero.cpp
+        LIBS ${UMF_UTILS_FOR_TEST}
+             ${UMF_BA_FOR_TEST}
+             umf_ze_loopback
+             umf_test_mocks
+             GTest::gmock)
+endif()
 
 if(UMF_BUILD_GPU_TESTS AND UMF_LEVEL_ZERO_ENABLED)
     # we have two test binaries here that use the same sources, but differ in
@@ -480,8 +483,8 @@ endif()
 if(NOT UMF_BUILD_LEVEL_ZERO_PROVIDER)
     add_umf_test(
         NAME provider_level_zero_not_impl
-	SRCS providers/provider_level_zero_not_impl.cpp
-	LIBS ${UMF_UTILS_FOR_TEST})
+        SRCS providers/provider_level_zero_not_impl.cpp
+        LIBS ${UMF_UTILS_FOR_TEST})
 endif()
 
 if(UMF_BUILD_GPU_TESTS AND UMF_BUILD_CUDA_PROVIDER)
