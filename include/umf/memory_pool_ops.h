@@ -191,18 +191,6 @@ typedef struct umf_memory_pool_ops_t {
     ///         failure.
     ///
     umf_result_t (*ext_trim_memory)(void *pool, size_t minBytesToKeep);
-
-    ///
-    /// @brief Adds or removes devices on which allocations should be made
-    ///        resident.
-    /// @param pool pointer to the memory pool
-    /// @param device device handle
-    /// @param isAdding Boolean indicating if peer is to be removed or added
-    /// @return UMF_RESULT_SUCCESS on success or appropriate error code on
-    ///         failure.
-    ///
-    umf_result_t (*ext_resident_device_change)(void *pool, void *device,
-                                               bool isAdding);
 } umf_memory_pool_ops_t;
 
 #ifdef __cplusplus
