@@ -162,14 +162,6 @@ static umf_result_t nullGetAllocationPropertiesSize(
     return UMF_RESULT_SUCCESS;
 }
 
-static umf_result_t nullResidentDeviceChange(void *provider, void *device,
-                                             bool is_adding) {
-    (void)provider;
-    (void)device;
-    (void)is_adding;
-    return UMF_RESULT_SUCCESS;
-}
-
 umf_memory_provider_ops_t UMF_NULL_PROVIDER_OPS = {
     .version = UMF_PROVIDER_OPS_VERSION_CURRENT,
     .initialize = nullInitialize,
@@ -191,5 +183,4 @@ umf_memory_provider_ops_t UMF_NULL_PROVIDER_OPS = {
     .ext_close_ipc_handle = nullCloseIpcHandle,
     .ext_get_allocation_properties = nullGetAllocationProperties,
     .ext_get_allocation_properties_size = nullGetAllocationPropertiesSize,
-    .ext_resident_device_change = nullResidentDeviceChange,
 };

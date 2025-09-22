@@ -829,7 +829,6 @@ static umf_memory_provider_ops_t UMF_CUDA_MEMORY_PROVIDER_OPS = {
         cu_memory_provider_get_allocation_properties,
     .ext_get_allocation_properties_size =
         cu_memory_provider_get_allocation_properties_size,
-    .ext_resident_device_change = NULL,
 };
 
 const umf_memory_provider_ops_t *umfCUDAMemoryProviderOps(void) {

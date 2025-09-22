@@ -5,6 +5,8 @@
 #include "../common/level_zero_mocks.h"
 #include "pool.hpp"
 #include "umf/pools/pool_disjoint.h"
+#include "umf/providers/provider_level_zero.h"
+
 #include "gtest/gtest.h"
 
 using namespace testing;
@@ -67,7 +69,7 @@ TEST_F(PoolResidencyTestFixture,
 
     umf_memory_provider_handle_t provider;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
-    umfMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
+    umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
 
     EXPECT_CALL(l0mock, zeMemAllocDevice(CONTEXT, _, _, _, OUR_DEVICE, _))
         .WillOnce(
@@ -100,7 +102,7 @@ TEST_F(PoolResidencyTestFixture,
 
     umf_memory_provider_handle_t provider;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
-    umfMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
+    umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
 
     umfPoolFree(pool, ptr);
 }
@@ -112,7 +114,7 @@ TEST_F(PoolResidencyTestFixture,
 
     umf_memory_provider_handle_t provider;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
-    umfMemoryProviderResidentDeviceChange(provider, DEVICE_2, false);
+    umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_2, false);
 
     EXPECT_CALL(l0mock, zeMemAllocDevice(CONTEXT, _, _, _, OUR_DEVICE, _))
         .WillOnce(

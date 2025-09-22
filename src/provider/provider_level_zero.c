@@ -178,7 +178,7 @@ static ze_memory_type_t umf2ze_memory_type(umf_usm_memory_type_t memory_type) {
 
 static void init_ze_global_state(void) {
 
-    char *lib_name = getenv("UMF_ZE_LOADER_LIB_NAME");
+    const char *lib_name = getenv("UMF_ZE_LOADER_LIB_NAME");
     if (lib_name != NULL && lib_name[0] != '\0') {
         LOG_INFO("Using custom ze_loader library name: %s", lib_name);
     } else {
@@ -371,7 +371,7 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
             if (hDevices[first_idx] == hDevices[second_idx]) {
                 LOG_ERR("resident devices are not unique, idx:%u and "
                         "idx:%u both point to device:%p",
-                        first_idx, second_idx, hDevices[first_idx]);
+                        first_idx, second_idx, (void *)hDevices[first_idx]);
                 return UMF_RESULT_ERROR_INVALID_ARGUMENT;
             }
         }
@@ -527,8 +527,8 @@ static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
             utils_read_unlock(&ze_provider->resident_device_rwlock);
             LOG_ERR("making resident allocation %p of size:%lu on device %p "
                     "failed with 0x%x",
-                    *resultPtr, size, ze_provider->resident_device_handles[i],
-                    ze_result);
+                    *resultPtr, size,
+                    (void *)ze_provider->resident_device_handles[i], ze_result);
             umf_result_t free_result =
                 ze_memory_provider_free(ze_provider, *resultPtr, size);
             if (free_result != UMF_RESULT_SUCCESS) {
@@ -539,7 +539,8 @@ static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
             return ze2umf_result(ze_result);
         }
         LOG_DEBUG("allocation %p of size:%lu made resident on device %p",
-                  *resultPtr, size, ze_provider->resident_device_handles[i]);
+                  *resultPtr, size,
+                  (void *)ze_provider->resident_device_handles[i]);
     }
     utils_read_unlock(&ze_provider->resident_device_rwlock);
 
@@ -1034,22 +1035,21 @@ static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
     return 0;
 }
 
-static umf_result_t ze_memory_provider_resident_device_change(void *provider,
-                                                              void *device,
-                                                              bool is_adding) {
-    ze_memory_provider_t *ze_provider = provider;
-    ze_device_handle_t ze_device = device;
+umf_result_t umfLevelZeroMemoryProviderResidentDeviceChange(
+    umf_memory_provider_handle_t provider, ze_device_handle_t device,
+    bool is_adding) {
+    ze_memory_provider_t *ze_provider = umfMemoryProviderGetPriv(provider);
 
     LOG_INFO("%s resident device %p, src_provider:%p, existing peers "
              "count:%d",
-             (is_adding ? "adding" : "removing"), ze_device, provider,
-             ze_provider->resident_device_count);
+             (is_adding ? "adding" : "removing"), (void *)device,
+             (void *)provider, ze_provider->resident_device_count);
 
     uint32_t existing_peer_index = 0;
     utils_write_lock(&ze_provider->resident_device_rwlock);
     while (existing_peer_index < ze_provider->resident_device_count &&
            ze_provider->resident_device_handles[existing_peer_index] !=
-               ze_device) {
+               device) {
         ++existing_peer_index;
     }
 
@@ -1060,7 +1060,7 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
             utils_write_unlock(&ze_provider->resident_device_rwlock);
             LOG_ERR("trying to remove resident device %p but the device "
                     "is not a peer of provider:%p currently",
-                    ze_device, provider);
+                    (void *)device, (void *)provider);
             return UMF_RESULT_ERROR_INVALID_ARGUMENT;
         }
         // adding case
@@ -1086,7 +1086,7 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
             ze_provider->resident_device_handles = new_handles;
             ze_provider->resident_device_capacity = new_capacity;
         }
-        ze_provider->resident_device_handles[existing_peer_index] = ze_device;
+        ze_provider->resident_device_handles[existing_peer_index] = device;
         ++ze_provider->resident_device_count;
 
     } else {
@@ -1095,7 +1095,7 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
             utils_write_unlock(&ze_provider->resident_device_rwlock);
             LOG_ERR("trying to add resident device:%p but the device is "
                     "already a peer of provider:%p",
-                    ze_device, provider);
+                    (void *)device, (void *)provider);
             return UMF_RESULT_ERROR_INVALID_ARGUMENT;
         }
         // removing case, put last in place of removed one
@@ -1108,7 +1108,7 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
 
     struct ze_memory_provider_resident_device_change_data privData = {
         .is_adding = is_adding,
-        .peer_device = ze_device,
+        .peer_device = device,
         .source_memory_provider = ze_provider,
         .success_changes = 0,
         .failed_changes = 0,
@@ -1162,7 +1162,6 @@ static umf_memory_provider_ops_t UMF_LEVEL_ZERO_MEMORY_PROVIDER_OPS = {
         ze_memory_provider_get_allocation_properties,
     .ext_get_allocation_properties_size =
         ze_memory_provider_get_allocation_properties_size,
-    .ext_resident_device_change = ze_memory_provider_resident_device_change,
 };
 
 const umf_memory_provider_ops_t *umfLevelZeroMemoryProviderOps(void) {
@@ -1256,6 +1255,16 @@ const umf_memory_provider_ops_t *umfLevelZeroMemoryProviderOps(void) {
     LOG_ERR("L0 memory provider is disabled! (UMF_BUILD_LEVEL_ZERO_PROVIDER is "
             "OFF)");
     return NULL;
+}
+
+umf_result_t umfLevelZeroMemoryProviderResidentDeviceChange(
+    umf_memory_provider_handle_t provider, ze_device_handle_t device,
+    bool is_adding) {
+    (void)provider(void) device,
+        (void)is_adding LOG_ERR(
+            "L0 memory provider is disabled! (UMF_BUILD_LEVEL_ZERO_PROVIDER is "
+            "OFF)");
+    return UMF_RESULT_ERROR_NOT_SUPPORTED;
 }
 
 #endif // !UMF_BUILD_LEVEL_ZERO_PROVIDER

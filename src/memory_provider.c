@@ -154,14 +154,6 @@ static umf_result_t umfDefaultGetAllocationPropertiesSize(
     return UMF_RESULT_ERROR_NOT_SUPPORTED;
 }
 
-static umf_result_t umfDefaultResidentDeviceChange(void *provider, void *device,
-                                                   bool is_adding) {
-    (void)provider;
-    (void)device;
-    (void)is_adding;
-    return UMF_RESULT_ERROR_NOT_SUPPORTED;
-}
-
 void assignOpsExtDefaults(umf_memory_provider_ops_t *ops) {
     if (!ops->ext_purge_lazy) {
         ops->ext_purge_lazy = umfDefaultPurgeLazy;
@@ -190,10 +182,6 @@ void assignOpsExtDefaults(umf_memory_provider_ops_t *ops) {
     if (!ops->ext_get_allocation_properties_size) {
         ops->ext_get_allocation_properties_size =
             umfDefaultGetAllocationPropertiesSize;
-    }
-
-    if (!ops->ext_resident_device_change) {
-        ops->ext_resident_device_change = umfDefaultResidentDeviceChange;
     }
 }
 
@@ -614,19 +602,6 @@ umf_result_t umfMemoryProviderGetAllocationPropertiesSize(
 
     umf_result_t res = hProvider->ops.ext_get_allocation_properties_size(
         hProvider->provider_priv, propertyId, size);
-
-    checkErrorAndSetLastProvider(res, hProvider);
-    return res;
-}
-
-umf_result_t
-umfMemoryProviderResidentDeviceChange(umf_memory_provider_handle_t hProvider,
-                                      void *device, bool isAdding) {
-
-    UMF_CHECK((hProvider != NULL), UMF_RESULT_ERROR_INVALID_ARGUMENT);
-
-    umf_result_t res = hProvider->ops.ext_resident_device_change(
-        hProvider->provider_priv, device, isAdding);
 
     checkErrorAndSetLastProvider(res, hProvider);
     return res;

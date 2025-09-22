@@ -151,8 +151,8 @@ UMF_1.1 {
     umfGetMemoryProperty;
     umfGetMemoryPropertySize;
     umfJemallocPoolParamsSetName;
-    umfMemoryProviderResidentDeviceChange;
     umfLevelZeroMemoryProviderParamsSetName;
+    umfLevelZeroMemoryProviderResidentDeviceChange;
     umfOsMemoryProviderParamsSetName;
     umfPoolTrimMemory;
     umfScalablePoolParamsSetName;

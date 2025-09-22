@@ -29,46 +29,54 @@ class LevelZeroResidencyTestFixture : public Test {
 TEST_F(LevelZeroResidencyTestFixture, addNonexistingDeviceShouldSucceed) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_2, true),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_2,
+                                                             true),
               UMF_RESULT_SUCCESS);
 }
 
 TEST_F(LevelZeroResidencyTestFixture, addExistingDeviceShouldFail) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_5, true),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_5,
+                                                             true),
               UMF_RESULT_ERROR_INVALID_ARGUMENT);
 }
 
 TEST_F(LevelZeroResidencyTestFixture, removeNonexistingDeviceShouldFail) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_0, false),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_0,
+                                                             false),
               UMF_RESULT_ERROR_INVALID_ARGUMENT);
 }
 
 TEST_F(LevelZeroResidencyTestFixture, removeExistingDeviceShouldSucceed) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_1, false),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_1,
+                                                             false),
               UMF_RESULT_SUCCESS);
 }
 
 TEST_F(LevelZeroResidencyTestFixture, addDeviceTwiceShouldFail) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_2, true),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_2,
+                                                             true),
               UMF_RESULT_SUCCESS);
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_2, true),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_2,
+                                                             true),
               UMF_RESULT_ERROR_INVALID_ARGUMENT);
 }
 
 TEST_F(LevelZeroResidencyTestFixture, removeDeviceTwiceShouldFail) {
     provider = l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_1, DEVICE_5, DEVICE_3});
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_3, false),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_3,
+                                                             false),
               UMF_RESULT_SUCCESS);
-    ASSERT_EQ(umfMemoryProviderResidentDeviceChange(provider, DEVICE_3, false),
+    ASSERT_EQ(umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_3,
+                                                             false),
               UMF_RESULT_ERROR_INVALID_ARGUMENT);
 }
 

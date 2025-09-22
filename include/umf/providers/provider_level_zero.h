@@ -101,6 +101,17 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetDeviceOrdinal(
 umf_result_t umfLevelZeroMemoryProviderParamsSetName(
     umf_level_zero_memory_provider_params_handle_t hParams, const char *name);
 
+/// @brief Adds or removes devices on which allocations should be made
+///        resident.
+/// @param hProvider handle to the memory provider
+/// @param device device handle
+/// @param isAdding Boolean indicating if peer is to be removed or added
+/// @return UMF_RESULT_SUCCESS on success or appropriate error code on
+///         failure.
+umf_result_t umfLevelZeroMemoryProviderResidentDeviceChange(
+    umf_memory_provider_handle_t provider, ze_device_handle_t device,
+    bool is_adding);
+
 const umf_memory_provider_ops_t *umfLevelZeroMemoryProviderOps(void);
 
 #ifdef __cplusplus
