@@ -19,7 +19,6 @@ EXPORTS
     umfCUDAMemoryProviderParamsSetContext
     umfCUDAMemoryProviderParamsSetDevice
     umfCUDAMemoryProviderParamsSetMemoryType
-    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfDevDaxMemoryProviderOps
     umfDevDaxMemoryProviderParamsCreate
     umfDevDaxMemoryProviderParamsDestroy
@@ -42,6 +41,7 @@ EXPORTS
     umfLevelZeroMemoryProviderParamsSetContext
     umfLevelZeroMemoryProviderParamsSetDevice
     umfLevelZeroMemoryProviderParamsSetMemoryType
+    umfLevelZeroMemoryProviderParamsSetResidentDevices
     umfMemoryProviderAlloc
     umfMemoryProviderAllocationMerge
     umfMemoryProviderAllocationSplit

@@ -126,6 +126,25 @@ TEST_F(PoolResidencyTestFixture,
     umfPoolFree(pool, ptr);
 }
 
+TEST_F(PoolResidencyTestFixture,
+       allocationThatFailedToBeMadeResidedShouldBeFreed) {
+    initializeMemoryPool(l0mock.initializeMemoryProviderWithResidentDevices(
+        OUR_DEVICE, {DEVICE_2}));
+
+    EXPECT_CALL(l0mock, zeMemAllocDevice(CONTEXT, _, _, _, OUR_DEVICE, _))
+        .WillOnce(
+            DoAll(SetArgPointee<5>(POINTER_0), Return(ZE_RESULT_SUCCESS)));
+    EXPECT_CALL(l0mock, zeContextMakeMemoryResident(CONTEXT, DEVICE_2, _, _))
+        .WillOnce(Return(ZE_RESULT_ERROR_DEVICE_LOST));
+    EXPECT_CALL(l0mock, zeMemFree(CONTEXT, _))
+        .WillOnce(Return(ZE_RESULT_ERROR_DEVICE_IN_LOW_POWER_STATE));
+
+    void *ptr = umfPoolMalloc(pool, 16 * 1024 * 1024);
+    EXPECT_EQ(ptr, nullptr);
+
+    umfPoolFree(pool, ptr);
+}
+
 int main(int argc, char **argv) {
     InitGoogleTest(&argc, argv);
     AddGlobalTestEnvironment(new MockedLevelZeroTestEnvironment);

@@ -422,6 +422,43 @@ static ze_relaxed_allocation_limits_exp_desc_t relaxed_device_allocation_desc =
      .pNext = NULL,
      .flags = ZE_RELAXED_ALLOCATION_LIMITS_EXP_FLAG_MAX_SIZE};
 
+static umf_result_t ze_memory_provider_free_helper(void *provider, void *ptr,
+                                                   size_t bytes,
+                                                   int update_stats) {
+    if (ptr == NULL) {
+        return UMF_RESULT_SUCCESS;
+    }
+
+    ze_memory_provider_t *ze_provider = (ze_memory_provider_t *)provider;
+    umf_result_t ret;
+    if (ze_provider->freePolicyFlags == 0) {
+        ret = ze2umf_result(g_ze_ops.zeMemFree(ze_provider->context, ptr));
+    } else {
+        ze_memory_free_ext_desc_t desc = {
+            .stype = ZE_STRUCTURE_TYPE_MEMORY_FREE_EXT_DESC,
+            .pNext = NULL,
+            .freePolicy = ze_provider->freePolicyFlags};
+
+        ret = ze2umf_result(
+            g_ze_ops.zeMemFreeExt(ze_provider->context, &desc, ptr));
+    }
+
+    if (ret != UMF_RESULT_SUCCESS) {
+        return ret;
+    }
+
+    if (update_stats) {
+        provider_ctl_stats_free(ze_provider, bytes);
+    }
+
+    return UMF_RESULT_SUCCESS;
+}
+
+static umf_result_t ze_memory_provider_free(void *provider, void *ptr,
+                                            size_t bytes) {
+    return ze_memory_provider_free_helper(provider, ptr, bytes, 1);
+}
+
 static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
                                                     size_t alignment,
                                                     int update_stats,
@@ -488,10 +525,17 @@ static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
             *resultPtr, size);
         if (ze_result != ZE_RESULT_SUCCESS) {
             utils_read_unlock(&ze_provider->resident_device_rwlock);
-            LOG_DEBUG("making resident allocation %p of size:%lu on device %p "
-                      "failed with %d",
-                      *resultPtr, size, ze_provider->resident_device_handles[i],
-                      ze_result);
+            LOG_ERR("making resident allocation %p of size:%lu on device %p "
+                    "failed with 0x%x",
+                    *resultPtr, size, ze_provider->resident_device_handles[i],
+                    ze_result);
+            umf_result_t free_result =
+                ze_memory_provider_free(ze_provider, *resultPtr, size);
+            if (free_result != UMF_RESULT_SUCCESS) {
+                LOG_ERR("failed to free memory with: 0x%x after failed making "
+                        "resident, free fail ignored",
+                        free_result);
+            }
             return ze2umf_result(ze_result);
         }
         LOG_DEBUG("allocation %p of size:%lu made resident on device %p",
@@ -510,43 +554,6 @@ static umf_result_t ze_memory_provider_alloc(void *provider, size_t size,
                                              void **resultPtr) {
     return ze_memory_provider_alloc_helper(provider, size, alignment, 1,
                                            resultPtr);
-}
-
-static umf_result_t ze_memory_provider_free_helper(void *provider, void *ptr,
-                                                   size_t bytes,
-                                                   int update_stats) {
-    if (ptr == NULL) {
-        return UMF_RESULT_SUCCESS;
-    }
-
-    ze_memory_provider_t *ze_provider = (ze_memory_provider_t *)provider;
-    umf_result_t ret;
-    if (ze_provider->freePolicyFlags == 0) {
-        ret = ze2umf_result(g_ze_ops.zeMemFree(ze_provider->context, ptr));
-    } else {
-        ze_memory_free_ext_desc_t desc = {
-            .stype = ZE_STRUCTURE_TYPE_MEMORY_FREE_EXT_DESC,
-            .pNext = NULL,
-            .freePolicy = ze_provider->freePolicyFlags};
-
-        ret = ze2umf_result(
-            g_ze_ops.zeMemFreeExt(ze_provider->context, &desc, ptr));
-    }
-
-    if (ret != UMF_RESULT_SUCCESS) {
-        return ret;
-    }
-
-    if (update_stats) {
-        provider_ctl_stats_free(ze_provider, bytes);
-    }
-
-    return UMF_RESULT_SUCCESS;
-}
-
-static umf_result_t ze_memory_provider_free(void *provider, void *ptr,
-                                            size_t bytes) {
-    return ze_memory_provider_free_helper(provider, ptr, bytes, 1);
 }
 
 static umf_result_t query_min_page_size(ze_memory_provider_t *ze_provider,
@@ -997,8 +1004,8 @@ static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
 
     // TODO: add assertions to UMF and change it to be an assertion
     if (info->props.base != (void *)key) {
-        LOG_ERR("key:%p is different than base:%p", (void *)key,
-                info->props.base);
+        LOG_FATAL("key:%p is different than base:%p", (void *)key,
+                  info->props.base);
         abort();
     }
 
@@ -1060,8 +1067,7 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
         if (ze_provider->resident_device_count ==
             ze_provider->resident_device_capacity) {
             const uint32_t new_capacity =
-                ze_provider->resident_device_capacity * 2 +
-                1; // +1 to work also with old capacity == 0
+                ze_provider->resident_device_capacity + 1;
             ze_device_handle_t *new_handles =
                 umf_ba_global_alloc(sizeof(ze_device_handle_t) * new_capacity);
             if (new_handles == NULL) {
@@ -1087,7 +1093,6 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
         // found
         if (is_adding) {
             utils_write_unlock(&ze_provider->resident_device_rwlock);
-            // impossible for UR, should be an assertion
             LOG_ERR("trying to add resident device:%p but the device is "
                     "already a peer of provider:%p",
                     ze_device, provider);
@@ -1109,6 +1114,9 @@ static umf_result_t ze_memory_provider_resident_device_change(void *provider,
         .failed_changes = 0,
     };
 
+    // This is "hacky" and it will not work if someone uses pool without tracker
+    // or just use provider without pool. It can be solved by keeping track of
+    // allocations by the provider like in os_provider.
     umf_result_t result = umfMemoryTrackerIterateAll(
         &ze_memory_provider_resident_device_change_helper, &privData);
     if (result != UMF_RESULT_SUCCESS) {
