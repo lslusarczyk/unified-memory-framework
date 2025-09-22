@@ -336,6 +336,7 @@ static void utils_ze_init_level_zero_once(void) {
 
 int utils_ze_init_level_zero(void) {
     utils_init_once(&level_zero_init_flag, utils_ze_init_level_zero_once);
+
     return InitResult;
 }
 

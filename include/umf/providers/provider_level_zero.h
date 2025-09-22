@@ -8,6 +8,8 @@
 #ifndef UMF_LEVEL_ZERO_PROVIDER_H
 #define UMF_LEVEL_ZERO_PROVIDER_H
 
+#include <stdbool.h>
+
 #include <umf/memory_provider_gpu.h>
 
 #ifdef __cplusplus

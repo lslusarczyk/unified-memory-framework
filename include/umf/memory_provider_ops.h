@@ -11,7 +11,6 @@
 #define UMF_MEMORY_PROVIDER_OPS_H 1
 
 #include <stdarg.h>
-#include <stdbool.h>
 
 #include <umf/base.h>
 
@@ -322,6 +321,7 @@ typedef struct umf_memory_provider_ops_t {
     umf_result_t (*ext_get_allocation_properties_size)(
         void *provider, umf_memory_property_id_t memory_property_id,
         size_t *size);
+
 } umf_memory_provider_ops_t;
 
 #ifdef __cplusplus

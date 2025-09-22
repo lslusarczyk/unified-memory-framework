@@ -275,6 +275,7 @@ umf_result_t umfLevelZeroMemoryProviderParamsCreate(
 umf_result_t umfLevelZeroMemoryProviderParamsDestroy(
     umf_level_zero_memory_provider_params_handle_t hParams) {
     umf_ba_global_free(hParams);
+
     return UMF_RESULT_SUCCESS;
 }
 
@@ -355,12 +356,10 @@ umf_result_t umfLevelZeroMemoryProviderParamsSetName(
 umf_result_t umfLevelZeroMemoryProviderParamsSetResidentDevices(
     umf_level_zero_memory_provider_params_handle_t hParams,
     ze_device_handle_t *hDevices, uint32_t deviceCount) {
-
     if (!hParams) {
         LOG_ERR("Level Zero memory provider params handle is NULL");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
     }
-
     if (deviceCount > 0 && hDevices == NULL) {
         LOG_ERR("Resident devices array is NULL, but deviceCount is not zero");
         return UMF_RESULT_ERROR_INVALID_ARGUMENT;
@@ -519,7 +518,6 @@ static umf_result_t ze_memory_provider_alloc_helper(void *provider, size_t size,
 
     utils_read_lock(&ze_provider->resident_device_rwlock);
     for (uint32_t i = 0; i < ze_provider->resident_device_count; i++) {
-
         ze_result = g_ze_ops.zeContextMakeMemoryResident(
             ze_provider->context, ze_provider->resident_device_handles[i],
             *resultPtr, size);
