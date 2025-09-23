@@ -1,14 +1,14 @@
 /*
  *
- * Copyright (C) 2023-2025 Intel Corporation
+ * Copyright (C) 2025 Intel Corporation
  *
  * Under the Apache License v2.0 with LLVM Exceptions. See LICENSE.TXT.
  * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
  *
  */
 
-#ifndef UMF_PROVIDER_LEVEL_ZERO_MOCKS_H
-#define UMF_PROVIDER_LEVEL_ZERO_MOCKS_H
+#ifndef UMF_TEST_PROVIDER_LEVEL_ZERO_MOCKS_H
+#define UMF_TEST_PROVIDER_LEVEL_ZERO_MOCKS_H
 
 #include "utils/utils_log.h"
 #include "ze_loopback.h"
@@ -66,7 +66,8 @@ class LevelZeroMock : public LevelZero {
     MOCK_METHOD2(zeMemFree,
                  ze_result_t(ze_context_handle_t hContext, void *ptr));
 
-    // helper setting all expects related to successful l0 provider creation & initialization and calling its creation & initialization
+    // helper setting all expects related to successful l0 provider creation
+    // and initialization and calling its creation and initialization
     umf_memory_provider_handle_t initializeMemoryProviderWithResidentDevices(
         ze_device_handle_t device,
         std::vector<ze_device_handle_t> residentDevices,
@@ -83,4 +84,4 @@ class MockedLevelZeroTestEnvironment : public ::testing::Environment {
     void TearDown() override;
 };
 
-#endif //UMF_PROVIDER_LEVEL_ZERO_MOCKS_H
+#endif //UMF_TEST_PROVIDER_LEVEL_ZERO_MOCKS_H

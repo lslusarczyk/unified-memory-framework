@@ -1,6 +1,6 @@
 /*
  *
- * Copyright (C) 2023-2025 Intel Corporation
+ * Copyright (C) 2025 Intel Corporation
  *
  * Under the Apache License v2.0 with LLVM Exceptions. See LICENSE.TXT.
  * SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
@@ -288,7 +288,3 @@ zeMemFreeExt(ze_context_handle_t hContext,
     LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
     abort();
 }
-
-// defined in both libze_ops from src/utils/utils_level_zero.cpp and
-// ze_ops_t operations from src/provider/provider_level_zero.c
-// zeDeviceGetProperties, zeMemFree, zeMemGetAllocProperties, zeMemFree, zeMemAllocDevice, find them in the former ones

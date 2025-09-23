@@ -1001,12 +1001,7 @@ static int ze_memory_provider_resident_device_change_helper(uintptr_t key,
         return 0;
     }
 
-    // TODO: add assertions to UMF and change it to be an assertion
-    if (info->props.base != (void *)key) {
-        LOG_FATAL("key:%p is different than base:%p", (void *)key,
-                  info->props.base);
-        abort();
-    }
+    assert(info->props.base == (void *)key);
 
     ze_result_t result;
     if (change_data->is_adding) {
@@ -1258,9 +1253,10 @@ const umf_memory_provider_ops_t *umfLevelZeroMemoryProviderOps(void) {
 umf_result_t umfLevelZeroMemoryProviderResidentDeviceChange(
     umf_memory_provider_handle_t provider, ze_device_handle_t device,
     bool is_adding) {
-    (void)provider(void) device,
-        (void)is_adding LOG_ERR(
-            "L0 memory provider is disabled! (UMF_BUILD_LEVEL_ZERO_PROVIDER is "
+    (void)provider;
+    (void)device;
+    (void)is_adding;
+    LOG_ERR("L0 memory provider is disabled! (UMF_BUILD_LEVEL_ZERO_PROVIDER is "
             "OFF)");
     return UMF_RESULT_ERROR_NOT_SUPPORTED;
 }
