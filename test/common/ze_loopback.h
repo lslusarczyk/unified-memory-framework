@@ -5,7 +5,7 @@
 #ifndef UMF_TEST_ZE_LOOPBACK_H
 #define UMF_TEST_ZE_LOOPBACK_H
 
-#include <level_zero/ze_api.h>
+#include "ze_api.h"
 
 class LevelZero {
   public:
