@@ -22,6 +22,12 @@ target_include_directories(umf_test_common
                            PRIVATE ${UMF_CMAKE_SOURCE_DIR}/include)
 
 if(UMF_LEVEL_ZERO_ENABLED)
+
+    pkg_check_modules(ZE_LOADER ze_loader)
+    if(NOT ZE_LOADER_FOUND)
+        find_package(ZE_LOADER REQUIRED ze_loader)
+    endif()
+
     add_library(umf_test_mocks STATIC level_zero_mocks.cpp)
 
     target_link_libraries(umf_test_mocks GTest::gmock)
@@ -35,4 +41,5 @@ if(UMF_LEVEL_ZERO_ENABLED)
     target_include_directories(
         umf_ze_loopback PRIVATE ${ZE_LOADER_INCLUDE_DIRS} ${UMF_UTILS_DIR}
                                 ${UMF_SRC_DIR} ${UMF_CMAKE_SOURCE_DIR}/include)
+    target_link_libraries(umf_ze_loopback ${UMF_UTILS_FOR_TEST})
 endif()
