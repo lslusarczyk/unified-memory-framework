@@ -35,7 +35,7 @@ if(UMF_LEVEL_ZERO_ENABLED)
     target_include_directories(
         umf_test_mocks
         PRIVATE ${UMF_CMAKE_SOURCE_DIR}/include ${UMF_CMAKE_SOURCE_DIR}/src
-                ${UMF_CMAKE_SOURCE_DIR}/src/utils)
+                ${UMF_CMAKE_SOURCE_DIR}/src/utils ${ZE_LOADER_INCLUDE_DIRS})
 
     add_library(umf_ze_loopback SHARED ze_loopback.h ze_loopback.cpp)
     target_include_directories(
