@@ -8,22 +8,26 @@
  */
 
 #include "ze_loopback.h"
-#include "utils_log.h"
 
 #include <cstdlib>
+#include <iostream>
 
 LevelZero *level_zero_mock = nullptr;
+
+static void check_mock_present() {
+    if (level_zero_mock == nullptr) {
+        std::cerr << "level_zero_mock was not set\n";
+        abort();
+    }
+}
+
+#define FAIL_NOT_IMPLEMENTED                                                   \
+    std::cerr << __func__ << " not implemented in ze_loopback.cpp\n";          \
+    abort();
 
 //
 // libze_ops from src/utils/utils_level_zero.cpp
 //
-
-void check_mock_present() {
-    if (level_zero_mock == nullptr) {
-        LOG_FATAL("level_zero_mock was not set");
-        abort();
-    }
-}
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeInit(ze_init_flags_t flags) {
     (void)flags;
@@ -34,8 +38,7 @@ ZE_APIEXPORT ze_result_t ZE_APICALL zeDriverGet(uint32_t *pCount,
                                                 ze_driver_handle_t *phDrivers) {
     (void)phDrivers;
     (void)pCount;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeDeviceGet(ze_driver_handle_t hDriver,
@@ -44,8 +47,7 @@ ZE_APIEXPORT ze_result_t ZE_APICALL zeDeviceGet(ze_driver_handle_t hDriver,
     (void)hDriver;
     (void)pCount;
     (void)phDevices;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeDeviceGetProperties(
@@ -60,15 +62,13 @@ zeContextCreate(ze_driver_handle_t hDriver, const ze_context_desc_t *desc,
     (void)hDriver;
     (void)desc;
     (void)phContext;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
 zeContextDestroy(ze_context_handle_t hContext) {
     (void)hContext;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED;
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
@@ -79,15 +79,13 @@ zeCommandQueueCreate(ze_context_handle_t hContext, ze_device_handle_t hDevice,
     (void)hDevice;
     (void)desc;
     (void)phCommandQueue;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
 zeCommandQueueDestroy(ze_command_queue_handle_t hCommandQueue) {
     (void)hCommandQueue;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandQueueExecuteCommandLists(
@@ -97,16 +95,14 @@ ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandQueueExecuteCommandLists(
     (void)numCommandLists;
     (void)phCommandLists;
     (void)hFence;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandQueueSynchronize(
     ze_command_queue_handle_t hCommandQueue, uint64_t timeout) {
     (void)hCommandQueue;
     (void)timeout;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
@@ -117,22 +113,19 @@ zeCommandListCreate(ze_context_handle_t hContext, ze_device_handle_t hDevice,
     (void)hDevice;
     (void)desc;
     (void)phCommandList;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
 zeCommandListDestroy(ze_command_list_handle_t hCommandList) {
     (void)hCommandList;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
 zeCommandListClose(ze_command_list_handle_t hCommandList) {
     (void)hCommandList;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandListAppendMemoryCopy(
@@ -146,8 +139,7 @@ ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandListAppendMemoryCopy(
     (void)hSignalEvent;
     (void)numWaitEvents;
     (void)phWaitEvents;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandListAppendMemoryFill(
@@ -162,8 +154,7 @@ ZE_APIEXPORT ze_result_t ZE_APICALL zeCommandListAppendMemoryFill(
     (void)hSignalEvent;
     (void)numWaitEvents;
     (void)phWaitEvents;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ZE_APIEXPORT ze_result_t ZE_APICALL
@@ -195,8 +186,7 @@ zeDeviceGetMemoryProperties(ze_device_handle_t hDevice, uint32_t *pCount,
     (void)hDevice;
     (void)pCount;
     (void)pMemProperties;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 //
@@ -212,8 +202,7 @@ ze_result_t ZE_APICALL zeMemAllocHost(ze_context_handle_t hContext,
     (void)size;
     (void)alignment;
     (void)pptr;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeMemAllocShared(
@@ -227,8 +216,7 @@ ze_result_t ZE_APICALL zeMemAllocShared(
     (void)alignment;
     (void)hDevice;
     (void)pptr;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeMemGetIpcHandle(ze_context_handle_t hContext,
@@ -237,16 +225,14 @@ ze_result_t ZE_APICALL zeMemGetIpcHandle(ze_context_handle_t hContext,
     (void)hContext;
     (void)ptr;
     (void)pIpcHandle;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeMemPutIpcHandle(ze_context_handle_t hContext,
                                          ze_ipc_mem_handle_t handle) {
     (void)hContext;
     (void)handle;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeMemOpenIpcHandle(ze_context_handle_t hContext,
@@ -259,16 +245,14 @@ ze_result_t ZE_APICALL zeMemOpenIpcHandle(ze_context_handle_t hContext,
     (void)handle;
     (void)flags;
     (void)pptr;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeMemCloseIpcHandle(ze_context_handle_t hContext,
                                            const void *ptr) {
     (void)hContext;
     (void)ptr;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
 
 ze_result_t ZE_APICALL zeContextMakeMemoryResident(ze_context_handle_t hContext,
@@ -285,6 +269,5 @@ zeMemFreeExt(ze_context_handle_t hContext,
     (void)hContext;
     (void)pMemFreeDesc;
     (void)ptr;
-    LOG_FATAL("not implemented, call in ze_loader_mock not passed to gmock");
-    abort();
+    FAIL_NOT_IMPLEMENTED
 }
