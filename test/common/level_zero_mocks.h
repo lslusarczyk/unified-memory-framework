@@ -17,8 +17,8 @@
 
 // TEST CREATE methods for objects
 
-template <class T> constexpr T TestCreatePointer(uint32_t modifier = 0) {
-    return reinterpret_cast<T>(0x1000 + modifier);
+template <class T> constexpr T TestCreatePointer(uintptr_t modifier = 0) {
+    return reinterpret_cast<T>(static_cast<uintptr_t>(0x1000) + modifier);
 }
 
 ze_device_properties_t TestCreateDeviceProperties();
