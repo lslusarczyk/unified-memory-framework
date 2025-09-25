@@ -80,6 +80,8 @@ class LevelZeroMock : public LevelZero {
 // important, makes UMF load ze_loopback instead of regular l0
 class MockedLevelZeroTestEnvironment : public ::testing::Environment {
   public:
+    static LevelZero **l0interface;
+
     void SetUp() override;
     void TearDown() override;
 };

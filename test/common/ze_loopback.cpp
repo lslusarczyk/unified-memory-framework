@@ -12,6 +12,8 @@
 #include <cstdlib>
 #include <iostream>
 
+LevelZero *level_zero_mock = nullptr;
+
 static void check_mock_present() {
     if (level_zero_mock == nullptr) {
         std::cerr << "level_zero_mock was not set\n";

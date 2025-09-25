@@ -8,7 +8,9 @@
  */
 
 #include "level_zero_mocks.h"
+
 #include "umf/providers/provider_level_zero.h"
+#include "utils_load_library.h"
 #include <cstdlib>
 
 using namespace ::testing;
@@ -92,9 +94,22 @@ TestCreateMemoryAllocationProperties(uint32_t modifier) {
 
 void MockedLevelZeroTestEnvironment::SetUp() {
 #ifdef _WIN32
-    _putenv_s("UMF_ZE_LOADER_LIB_NAME", "umf_ze_loopback.dll");
+    const char *lib_name = "umf_ze_loopback.dll";
+    _putenv_s("UMF_ZE_LOADER_LIB_NAME", lib_name);
 #else
-    setenv("UMF_ZE_LOADER_LIB_NAME", "libumf_ze_loopback.so", 1);
+    const char *lib_name = "libumf_ze_loopback.so";
+    setenv("UMF_ZE_LOADER_LIB_NAME", lib_name, 1);
 #endif
+
+    void *lib_handle =
+        utils_open_library(lib_name, UMF_UTIL_OPEN_LIBRARY_NO_LOAD);
+    ASSERT_NE(lib_handle, nullptr);
+
+    l0interface = static_cast<LevelZero **>(
+        utils_get_symbol_addr(lib_handle, "level_zero_mock", lib_name));
+    ASSERT_NE(l0interface, nullptr);
+    ASSERT_EQ(*l0interface, nullptr);
 }
 void MockedLevelZeroTestEnvironment::TearDown() {}
+
+LevelZero **MockedLevelZeroTestEnvironment::l0interface;

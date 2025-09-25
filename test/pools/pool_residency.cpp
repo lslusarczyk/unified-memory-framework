@@ -11,16 +11,16 @@
 
 using namespace testing;
 
-LevelZero *level_zero_mock = nullptr;
-
 class PoolResidencyTestFixture : public Test {
   protected:
-    StrictMock<LevelZeroMock> l0mock;
     umf_memory_pool_handle_t pool = nullptr;
     const ze_device_handle_t OUR_DEVICE;
+    StrictMock<LevelZeroMock> l0mock;
 
     PoolResidencyTestFixture()
-        : OUR_DEVICE(TestCreatePointer<ze_device_handle_t>(777)) {}
+        : OUR_DEVICE(TestCreatePointer<ze_device_handle_t>(777)) {
+        *MockedLevelZeroTestEnvironment::l0interface = &l0mock;
+    }
 
     void initializeMemoryPool(umf_memory_provider_handle_t provider) {
 
@@ -34,7 +34,7 @@ class PoolResidencyTestFixture : public Test {
         umf_test::defaultDisjointPoolConfigDestroy(params);
     }
 
-    void SetUp() override { level_zero_mock = &l0mock; }
+    void SetUp() override {}
     void TearDown() override {
         if (pool != nullptr) {
             EXPECT_CALL(l0mock, zeMemFree(CONTEXT, _))

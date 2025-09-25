@@ -30,6 +30,4 @@ class LevelZero {
     virtual ze_result_t zeMemFree(ze_context_handle_t hContext, void *ptr) = 0;
 };
 
-extern LevelZero *level_zero_mock;
-
 #endif //UMF_TEST_ZE_LOOPBACK_H

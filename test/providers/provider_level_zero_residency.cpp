@@ -8,8 +8,6 @@
 
 #include "gtest/gtest.h"
 
-LevelZero *level_zero_mock = nullptr;
-
 using namespace testing;
 
 class LevelZeroResidencyTestFixture : public Test {
@@ -19,9 +17,11 @@ class LevelZeroResidencyTestFixture : public Test {
     const ze_device_handle_t OUR_DEVICE;
 
     LevelZeroResidencyTestFixture()
-        : OUR_DEVICE(TestCreatePointer<ze_device_handle_t>(777)) {}
+        : OUR_DEVICE(TestCreatePointer<ze_device_handle_t>(777)) {
+        *MockedLevelZeroTestEnvironment::l0interface = &l0mock;
+    }
 
-    void SetUp() override { level_zero_mock = &l0mock; }
+    void SetUp() override {}
     void TearDown() override {
         Mock::VerifyAndClearExpectations(&l0mock);
         umfMemoryProviderDestroy(provider);
