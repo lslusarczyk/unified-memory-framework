@@ -8,6 +8,8 @@
 
 #include "gtest/gtest.h"
 
+LevelZero *level_zero_mock = nullptr;
+
 using namespace testing;
 
 class LevelZeroResidencyTestFixture : public Test {

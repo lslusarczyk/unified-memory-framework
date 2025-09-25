@@ -11,6 +11,8 @@
 
 using namespace testing;
 
+LevelZero *level_zero_mock = nullptr;
+
 class PoolResidencyTestFixture : public Test {
   protected:
     StrictMock<LevelZeroMock> l0mock;
@@ -67,7 +69,7 @@ TEST_F(PoolResidencyTestFixture,
     initializeMemoryPool(l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_0}));
 
-    umf_memory_provider_handle_t provider;
+    umf_memory_provider_handle_t provider = nullptr;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
     umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
 
@@ -100,7 +102,7 @@ TEST_F(PoolResidencyTestFixture,
     EXPECT_CALL(l0mock, zeContextMakeMemoryResident(CONTEXT, DEVICE_4, _, _))
         .WillOnce(Return(ZE_RESULT_SUCCESS));
 
-    umf_memory_provider_handle_t provider;
+    umf_memory_provider_handle_t provider = nullptr;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
     umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_4, true);
 
@@ -112,7 +114,7 @@ TEST_F(PoolResidencyTestFixture,
     initializeMemoryPool(l0mock.initializeMemoryProviderWithResidentDevices(
         OUR_DEVICE, {DEVICE_2}));
 
-    umf_memory_provider_handle_t provider;
+    umf_memory_provider_handle_t provider = nullptr;
     EXPECT_EQ(umfPoolGetMemoryProvider(pool, &provider), UMF_RESULT_SUCCESS);
     umfLevelZeroMemoryProviderResidentDeviceChange(provider, DEVICE_2, false);
 
