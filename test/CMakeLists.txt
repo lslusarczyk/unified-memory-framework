@@ -431,7 +431,7 @@ else()
         LIBS ${UMF_UTILS_FOR_TEST} ${UMF_BA_FOR_TEST})
 endif()
 
-if(UMF_LEVEL_ZERO_ENABLED)
+if(UMF_BUILD_LEVEL_ZERO_PROVIDER)
     add_umf_test(
         NAME provider_level_zero_residency
         SRCS providers/provider_level_zero_residency.cpp
