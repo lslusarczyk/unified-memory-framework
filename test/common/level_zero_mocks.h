@@ -10,7 +10,7 @@
 #ifndef UMF_TEST_PROVIDER_LEVEL_ZERO_MOCKS_H
 #define UMF_TEST_PROVIDER_LEVEL_ZERO_MOCKS_H
 
-#include "utils/utils_log.h"
+#include "utils_log.h"
 #include "ze_loopback.h"
 #include <gmock/gmock.h>
 #include <vector>

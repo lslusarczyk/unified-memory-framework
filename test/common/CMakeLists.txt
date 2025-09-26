@@ -25,12 +25,10 @@ if(UMF_BUILD_LEVEL_ZERO_PROVIDER)
     add_library(umf_test_mocks STATIC level_zero_mocks.cpp)
     target_link_libraries(umf_test_mocks GTest::gmock umf_utils)
     target_include_directories(
-        umf_test_mocks
-        PRIVATE ${UMF_CMAKE_SOURCE_DIR}/include ${UMF_CMAKE_SOURCE_DIR}/src
-                ${UMF_CMAKE_SOURCE_DIR}/src/utils ${LEVEL_ZERO_INCLUDE_DIRS})
+        umf_test_mocks PUBLIC ${UMF_CMAKE_SOURCE_DIR}/include ${UMF_SRC_DIR}
+                              ${UMF_UTILS_DIR} ${LEVEL_ZERO_INCLUDE_DIRS})
 
     add_library(umf_ze_loopback SHARED ze_loopback.h ze_loopback.cpp)
-    target_include_directories(
-        umf_ze_loopback PRIVATE ${LEVEL_ZERO_INCLUDE_DIRS} ${UMF_UTILS_DIR}
-                                ${UMF_SRC_DIR} ${UMF_CMAKE_SOURCE_DIR}/include)
+    target_include_directories(umf_ze_loopback
+                               PUBLIC ${LEVEL_ZERO_INCLUDE_DIRS})
 endif()
